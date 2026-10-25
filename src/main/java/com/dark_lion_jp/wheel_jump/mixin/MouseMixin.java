@@ -1,34 +1,34 @@
 package com.dark_lion_jp.wheel_jump.mixin;
 
 import java.lang.Math;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.Mouse;
-import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.MouseHandler;
+import net.minecraft.world.entity.player.Inventory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Mouse.class)
+@Mixin(MouseHandler.class)
 public class MouseMixin {
 
-  // Inject at the beginning of the onMouseScroll method to override its behavior.
-  @Inject(method = "onMouseScroll", at = @At("HEAD"))
-  private void onMouseScroll(long window, double horizontal, double vertical, CallbackInfo callbackInfo) {
+  // Inject at the beginning of the onScroll method to override its behavior.
+  @Inject(method = "onScroll", at = @At("HEAD"))
+  private void onScroll(long window, double horizontal, double vertical, CallbackInfo callbackInfo) {
     if (vertical == 0) {
       return;
     }
 
-    MinecraftClient client = MinecraftClient.getInstance();
+    Minecraft client = Minecraft.getInstance();
     if (
         client == null ||
         client.player == null ||
-        client.currentScreen != null
+        client.gui.screen() != null
     ) {
       return;
     }
 
-    PlayerInventory inventory = client.player.getInventory();
+    Inventory inventory = client.player.getInventory();
     if (inventory == null) {
       return;
     }
@@ -42,8 +42,8 @@ public class MouseMixin {
     inventory.setSelectedSlot(((currentSlot + delta) % 9 + 9) % 9);
 
     // Jump if the player is on the ground and no GUI screen is open
-    if (client.player.isOnGround()) {
-      client.player.jump();
+    if (client.player.onGround()) {
+      client.player.jumpFromGround();
     }
   }
 }
